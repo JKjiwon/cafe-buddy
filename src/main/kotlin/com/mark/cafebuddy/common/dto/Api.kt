@@ -10,7 +10,7 @@ data class Api<T>(
         fun <T> of(errorCode: ErrorCode, data: T? = null): Api<T> =
             Api(MetaData(errorCode.code, errorCode.message), data)
 
-        fun <T> ok(data: T): Api<T> = of(ErrorCode.OK, data)
+        fun <T> ok(data: T? = null): Api<T> = of(ErrorCode.OK, data)
     }
 }
 
