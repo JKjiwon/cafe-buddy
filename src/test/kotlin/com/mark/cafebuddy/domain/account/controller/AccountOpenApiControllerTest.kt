@@ -2,8 +2,10 @@ package com.mark.cafebuddy.domain.account.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mark.cafebuddy.domain.account.dto.AccountDetails
+import com.mark.cafebuddy.domain.account.dto.SignInRequest
 import com.mark.cafebuddy.domain.account.dto.SignUpRequest
 import com.mark.cafebuddy.domain.account.service.AccountService
+import com.mark.cafebuddy.security.utils.jwt.JwtUtils
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -32,6 +34,9 @@ class AccountOpenApiControllerTest {
 
     @Autowired
     lateinit var objectMapper: ObjectMapper
+
+    @Autowired
+    lateinit var jwtUtils: JwtUtils
 
     @WithAnonymousUser
     @DisplayName("계정을 생성한다.")
@@ -77,5 +82,29 @@ class AccountOpenApiControllerTest {
             .andExpect(jsonPath("$.data[0].field").value("phoneNumber"))
             .andExpect(jsonPath("$.data[0].value").value("010121233333"))
             .andExpect(jsonPath("$.data[0].reason").value("invalid phone number"))
+    }
+
+    @WithAnonymousUser
+    @DisplayName("휴대폰 번호, 비밀번호로 로그인 할 수 있다.")
+    @Test
+    fun signIn() {
+        // given
+        val signUpRequest = SignInRequest(phoneNumber = "010121233333", password = "1234")
+
+        val jwtToken = jwtUtils.create(1L)
+        Mockito.`when`(accountService.signIn(signUpRequest)).thenReturn(jwtToken)
+
+        // when & then
+        mockMvc.perform(
+            post("/open-api/accounts/sign-in")
+                .content(objectMapper.writeValueAsString(signUpRequest))
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andDo(print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.meta.code").value(200))
+            .andExpect(jsonPath("$.meta.message").value("OK"))
+            .andExpect(jsonPath("$.data.accessToken").isNotEmpty)
+            .andExpect(jsonPath("$.data.expiration").isNotEmpty)
     }
 }
