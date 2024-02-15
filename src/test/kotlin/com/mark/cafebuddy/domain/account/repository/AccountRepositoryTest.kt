@@ -15,7 +15,32 @@ class AccountRepositoryTest {
     lateinit var accountRepository: AccountRepository
 
     @Test
-    @DisplayName("계정(Account) 조회 시 권한(Role)도 함께 조회한다.")
+    @DisplayName("계정 Id로 계정(Account)을 조회 할 수 있다")
+    fun findById() {
+        val account1 = Account(
+            phoneNumber = "01011112222",
+            name = "홍길동",
+            password = "1234",
+            roles = listOf(Role.USER, Role.ADMIN)
+        )
+
+        val account2 = Account(
+            phoneNumber = "01022224444",
+            name = "김철수",
+            password = "1234",
+            roles = listOf(Role.USER)
+        )
+        val savedAccount1 = accountRepository.save(account1)
+        val savedAccount2 = accountRepository.save(account2)
+
+        val foundAccount = accountRepository.findByIdWithRoles(savedAccount2.id!!)
+        assertThat(foundAccount)
+            .extracting("name", "phoneNumber")
+            .contains("김철수", "01022224444")
+    }
+
+    @Test
+    @DisplayName("계정 Id로 계정(Account) 조회 시 권한(Role)도 함께 조회한다.")
     fun findByIdWithRoles() {
         // given
         val account = Account(

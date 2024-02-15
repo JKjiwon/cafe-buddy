@@ -1,8 +1,16 @@
 package com.mark.cafebuddy.config.security
 
+import com.mark.cafebuddy.security.exceptionhandler.CustomAccessDenierHandler
+import com.mark.cafebuddy.security.exceptionhandler.CustomAuthenticationEntryPoint
+import com.mark.cafebuddy.security.filter.JwtAuthenticationFilter
+import com.mark.cafebuddy.security.provider.JwtAuthenticationProvider
+import com.mark.cafebuddy.security.userdetails.AccountUserDetailService
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.ProviderManager
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer
@@ -10,13 +18,20 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.security.web.util.matcher.OrRequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatcher
 
+
 @Configuration
 @EnableWebSecurity
-class WebSecurityConfig {
+class WebSecurityConfig(
+    private val jwtAuthenticationProvider: JwtAuthenticationProvider,
+    private val customAccessDenierHandler: CustomAccessDenierHandler,
+    private val customAuthenticationEntryPoint: CustomAuthenticationEntryPoint,
+    private val accountUserDetailService: AccountUserDetailService
+) {
 
     companion object {
         val SWAGGER_REQUEST_MATCHER: RequestMatcher = OrRequestMatcher(
@@ -42,7 +57,21 @@ class WebSecurityConfig {
                     SessionCreationPolicy.STATELESS
                 )
             }
+            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
+            .exceptionHandling {
+                it.accessDeniedHandler(customAccessDenierHandler)
+                it.authenticationEntryPoint(customAuthenticationEntryPoint)
+            }
             .build()
+    }
+
+    @Bean
+    fun authenticationManager(): AuthenticationManager {
+        return ProviderManager(jwtAuthenticationProvider, daoAuthenticationProvider())
+    }
+
+    fun jwtAuthenticationFilter(): JwtAuthenticationFilter {
+        return JwtAuthenticationFilter(AntPathRequestMatcher("/api/**"), authenticationManager())
     }
 
     @Bean
@@ -53,6 +82,14 @@ class WebSecurityConfig {
                 .requestMatchers(SWAGGER_REQUEST_MATCHER)
                 .requestMatchers(PathRequest.toH2Console())
         }
+    }
+
+    @Bean
+    fun daoAuthenticationProvider(): DaoAuthenticationProvider {
+        val daoAuthenticationProvider = DaoAuthenticationProvider()
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder())
+        daoAuthenticationProvider.setUserDetailsService(accountUserDetailService)
+        return daoAuthenticationProvider
     }
 
     @Bean

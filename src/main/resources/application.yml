@@ -25,3 +25,8 @@ spring:
         show-sql: true
         format_sql: ture
     open-in-view: false
+
+jwt:
+  issuer: com.mark.cafe-buddy
+  secret-key: YTc2YjI1MTIwZjQ5NDRjMzg1YWI1N2UwOTE0OWMzOGQ=
+  expiration-mills: 7200000 # 2시간
