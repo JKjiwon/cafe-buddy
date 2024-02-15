@@ -7,9 +7,11 @@ data class Api<T>(
     val data: T? = null
 ) {
     companion object {
+        @JvmStatic
         fun <T> of(errorCode: ErrorCode, data: T? = null): Api<T> =
             Api(MetaData(errorCode.code, errorCode.message), data)
 
+        @JvmStatic
         fun <T> ok(data: T? = null): Api<T> = of(ErrorCode.OK, data)
     }
 }
