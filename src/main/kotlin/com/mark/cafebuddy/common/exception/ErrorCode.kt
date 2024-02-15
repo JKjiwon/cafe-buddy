@@ -14,5 +14,8 @@ enum class ErrorCode(
     FORBIDDEN(HttpStatus.FORBIDDEN, 403, "Forbidden"),
     NOT_FOUND(HttpStatus.NOT_FOUND, 404, "Not Found"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 500, "Internal Server Error"),
-    INVALID_REQUEST_ERROR(HttpStatus.PRECONDITION_FAILED, 4000, "Invalid Request Value"),
+    INVALID_REQUEST_ERROR(HttpStatus.PRECONDITION_FAILED, 412, "Invalid Request Value"),
+
+    // account
+    ALREADY_REGISTERED_PHONE_NUMBER(HttpStatus.BAD_REQUEST, 1001, "Already registered phone number")
 }

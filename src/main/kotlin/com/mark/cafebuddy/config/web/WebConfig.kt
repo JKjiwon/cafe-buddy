@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.converter.HttpMessageConverter
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
@@ -23,7 +24,8 @@ class WebConfig : WebMvcConfigurer {
         return converter
     }
 
-    private fun mvcObjectMapper(): ObjectMapper {
+    @Bean
+    fun mvcObjectMapper(): ObjectMapper {
         val objectMapper = jacksonObjectMapper()
 
         // Jdk8 Module Config
